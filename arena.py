@@ -271,23 +271,15 @@ def main():
                     color = CORNER_UNKNOWN_COLOR
                     text = "?"
 
-                # Circle
-                pygame.draw.circle(screen, color, (cx, cy), CORNER_RADIUS)
-                pygame.draw.circle(screen, BG_COLOR, (cx, cy), CORNER_RADIUS - 3)
-                pygame.draw.circle(screen, color, (cx, cy), CORNER_RADIUS, 2)
+                # Square
+                size = CORNER_RADIUS * 2
+                sq = pygame.Rect(cx - CORNER_RADIUS, cy - CORNER_RADIUS, size, size)
+                pygame.draw.rect(screen, color, sq, 2)
 
-                # Label inside circle
+                # Label inside square
                 label_surf = corner_font.render(text, True, color)
                 label_rect = label_surf.get_rect(center=(cx, cy))
                 screen.blit(label_surf, label_rect)
-
-                # Corner name below/above
-                name_surf = corner_font.render(c["label"], True, (60, 60, 60))
-                if i < 2:  # top corners — label below
-                    name_rect = name_surf.get_rect(midtop=(cx, cy + CORNER_RADIUS + 2))
-                else:  # bottom corners — label above
-                    name_rect = name_surf.get_rect(midbottom=(cx, cy - CORNER_RADIUS - 2))
-                screen.blit(name_surf, name_rect)
 
         # ── Info overlay ─────────────────────────────────────────────────────
         if show_info:
