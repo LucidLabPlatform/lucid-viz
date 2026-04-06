@@ -152,7 +152,7 @@ def main():
     global arena_w, arena_h, arena_x, arena_y
 
     pygame.init()
-    screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.FULLSCREEN)
     pygame.display.set_caption("Arena Calibration")
     clock = pygame.time.Clock()
     font = pygame.font.SysFont("monospace", 16)
