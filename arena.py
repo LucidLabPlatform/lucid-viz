@@ -20,6 +20,7 @@ MQTT:
 import pygame
 import sys
 import json
+import math
 import threading
 
 try:
@@ -34,7 +35,7 @@ WINDOW_HEIGHT = 1080
 
 # ── Calibrated arena (764px = 3m, 509px = 2m) ───────────────────────────────
 arena_w = 764
-arena_h = 509
+arena_h = 534
 arena_x = 570
 arena_y = 0
 
@@ -48,7 +49,7 @@ BG_COLOR = (0, 0, 0)
 GUIDE_COLOR = (40, 40, 40)
 CORNER_UNKNOWN_COLOR = (100, 100, 100)
 CORNER_KNOWN_COLOR = (0, 200, 100)
-CORNER_RADIUS = 14
+CORNER_RADIUS = 42
 CORNER_FONT_SIZE = 14
 
 RESIZE_STEP = 10
@@ -162,8 +163,8 @@ def main():
     dragging = False
     drag_offset_x = 0
     drag_offset_y = 0
-    fullscreen = False
-    show_info = True
+    fullscreen = True
+    show_info = False
 
     running = True
     while running:
@@ -258,6 +259,7 @@ def main():
         # Arena rectangle
         arena_rect = pygame.Rect(arena_x, arena_y, arena_w, arena_h)
         pygame.draw.rect(screen, BORDER_COLOR, arena_rect)
+        pygame.draw.rect(screen, (255, 0, 0), arena_rect, BORDER_THICKNESS)
 
         # ── Corner markers ───────────────────────────────────────────────────
         positions = corner_screen_positions()
@@ -271,14 +273,31 @@ def main():
                     color = CORNER_UNKNOWN_COLOR
                     text = "?"
 
-                # Square
+                # Semi-circle: flat edge faces the arena wall, curve opens inward
+                # TL/TR: flat on top (bottom half arc), BL/BR: flat on bottom (top half arc)
                 size = CORNER_RADIUS * 2
-                sq = pygame.Rect(cx - CORNER_RADIUS, cy - CORNER_RADIUS, size, size)
-                pygame.draw.rect(screen, color, sq, 2)
+                arc_rect = pygame.Rect(cx - CORNER_RADIUS, cy - CORNER_RADIUS, size, size)
 
-                # Label inside square
+                if i < 2:  # top corners — bottom-facing semi-circle
+                    start_angle, end_angle = math.pi, 2 * math.pi
+                    line_y = cy - CORNER_RADIUS
+                    pygame.draw.arc(screen, color, arc_rect, start_angle, end_angle, 2)
+                    pygame.draw.line(screen, color,
+                                     (cx - CORNER_RADIUS, line_y),
+                                     (cx + CORNER_RADIUS, line_y), 2)
+                    label_center = (cx, cy + 2)
+                else:       # bottom corners — top-facing semi-circle
+                    start_angle, end_angle = 0, math.pi
+                    line_y = cy + CORNER_RADIUS
+                    pygame.draw.arc(screen, color, arc_rect, start_angle, end_angle, 2)
+                    pygame.draw.line(screen, color,
+                                     (cx - CORNER_RADIUS, line_y),
+                                     (cx + CORNER_RADIUS, line_y), 2)
+                    label_center = (cx, cy - 2)
+
+                # Label inside
                 label_surf = corner_font.render(text, True, color)
-                label_rect = label_surf.get_rect(center=(cx, cy))
+                label_rect = label_surf.get_rect(center=label_center)
                 screen.blit(label_surf, label_rect)
 
         # ── Info overlay ─────────────────────────────────────────────────────
