@@ -75,13 +75,13 @@ corners_lock = threading.Lock()
 
 
 def corner_screen_positions():
-    """Return (x, y) screen positions for each corner: TL, TR, BR, BL."""
-    margin = CORNER_RADIUS + 4
+    """Return (x, y) screen positions for each corner: TL, TR, BR, BL.
+    Positions are at the exact arena corners so quarter circles sit flush."""
     return [
-        (arena_x + margin,           arena_y + margin),
-        (arena_x + arena_w - margin, arena_y + margin),
-        (arena_x + arena_w - margin, arena_y + arena_h - margin),
-        (arena_x + margin,           arena_y + arena_h - margin),
+        (arena_x,           arena_y),
+        (arena_x + arena_w, arena_y),
+        (arena_x + arena_w, arena_y + arena_h),
+        (arena_x,           arena_y + arena_h),
     ]
 
 
@@ -273,31 +273,28 @@ def main():
                     color = CORNER_UNKNOWN_COLOR
                     text = "?"
 
-                # Semi-circle: flat edge faces the arena wall, curve opens inward
-                # TL/TR: flat on top (bottom half arc), BL/BR: flat on bottom (top half arc)
-                size = CORNER_RADIUS * 2
-                arc_rect = pygame.Rect(cx - CORNER_RADIUS, cy - CORNER_RADIUS, size, size)
+                # Quarter circle tucked into each corner
+                # Arc rect is centered on the corner point; only a 90° slice is drawn
+                r = CORNER_RADIUS
+                size = r * 2
+                arc_rect = pygame.Rect(cx - r, cy - r, size, size)
 
-                if i < 2:  # top corners — bottom-facing semi-circle
-                    start_angle, end_angle = math.pi, 2 * math.pi
-                    line_y = cy - CORNER_RADIUS
-                    pygame.draw.arc(screen, color, arc_rect, start_angle, end_angle, 2)
-                    pygame.draw.line(screen, color,
-                                     (cx - CORNER_RADIUS, line_y),
-                                     (cx + CORNER_RADIUS, line_y), 2)
-                    label_center = (cx, cy + 2)
-                else:       # bottom corners — top-facing semi-circle
-                    start_angle, end_angle = 0, math.pi
-                    line_y = cy + CORNER_RADIUS
-                    pygame.draw.arc(screen, color, arc_rect, start_angle, end_angle, 2)
-                    pygame.draw.line(screen, color,
-                                     (cx - CORNER_RADIUS, line_y),
-                                     (cx + CORNER_RADIUS, line_y), 2)
-                    label_center = (cx, cy - 2)
+                if i == 0:    # TL — arc curves into arena (down-right)
+                    pygame.draw.arc(screen, color, arc_rect, 3 * math.pi / 2, 2 * math.pi, 2)
+                    label_off = (cx + r // 2, cy + r // 2)
+                elif i == 1:  # TR — arc curves into arena (down-left)
+                    pygame.draw.arc(screen, color, arc_rect, math.pi, 3 * math.pi / 2, 2)
+                    label_off = (cx - r // 2, cy + r // 2)
+                elif i == 2:  # BR — arc curves into arena (up-left)
+                    pygame.draw.arc(screen, color, arc_rect, math.pi / 2, math.pi, 2)
+                    label_off = (cx - r // 2, cy - r // 2)
+                else:         # BL — arc curves into arena (up-right)
+                    pygame.draw.arc(screen, color, arc_rect, 0, math.pi / 2, 2)
+                    label_off = (cx + r // 2, cy - r // 2)
 
-                # Label inside
+                # Label inside the quarter circle
                 label_surf = corner_font.render(text, True, color)
-                label_rect = label_surf.get_rect(center=label_center)
+                label_rect = label_surf.get_rect(center=label_off)
                 screen.blit(label_surf, label_rect)
 
         # ── Info overlay ─────────────────────────────────────────────────────
